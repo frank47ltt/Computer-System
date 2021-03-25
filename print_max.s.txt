@@ -1,0 +1,82 @@
+# @author Frank Liu  liut18@wfu.edu}
+# @date Dec.1, 2020
+# @assignment Lab 7
+# @file print_max.s
+# @course CSC 250
+#
+# This program reads a sequence of integers until a negative
+# value is entered and displays the current maximum
+#
+# Compile and run (Linux)
+#   gcc -no-pie print_max.s && ./a.out
+
+
+.text
+   .global main               # use main if using C library
+
+
+main:
+   push %rbp                  # save the old frame
+   mov  %rsp, %rbp            # create a new frame  
+   sub  $16, %rsp             # make some space on the stack (stack alignment)
+
+   # prompt the user
+   mov  $prompt_format, %rdi  # first printf argument, format string  
+   xor  %rax, %rax            # zero out rax  
+   call printf                # printf
+
+   # read the value
+   mov  $read_format, %rdi    # first scanf argument, format string 
+   lea  -8(%rbp), %rsi        # second scanf argument, memory address
+   xor  %rax, %rax            # zero out rax
+   call scanf                 # scanf
+   movq  -8(%rbp), %rax       # copy user input to %rax
+   movq %rax, -16(%rbp)       # copy %rax to local variable (max)
+   jmp .L5                    # enter the while loop
+
+.L2:                          # first if statement
+   movq -8(%rbp), %rax        # copy user input to register %rax
+   cmpq  -16(%rbp), %rax      # compare two local variables (max and user input)
+   jle  .L3                   # if max is greater, jump to ,L3
+   movq  -8(%rbp), %rsi       # if usser input is greater, move user input to second argument 
+   mov  $write_format, %rdi   # move write format to first argument
+   xor  %rax, %rax            # zero out eax
+   call printf                # print the max
+   movq -8(%rbp), %rax        # copy user input to %rax
+   movq  %rax, -16(%rbp)      # copy %rax to max variable
+   jmp .L4                    # prompt for the next input
+
+.L3:                          # max is still max
+   mov  -16(%rbp), %rsi       # max to second argument
+   mov  $write_format, %rdi   # string to first argument
+   xor  %rax, %rax            # zero out eax
+   call printf                # call printf
+
+.L4:                          # continue to prompt user
+   mov  $prompt_format, %rdi  # move prompt to first argument
+   xor  %rax, %rax            # zero out eax
+   call printf                # print the prompt
+   lea  -8(%rbp), %rsi        # memory address to second argument
+   mov  $read_format, %rdi    # read_prompt to first argument
+   xor  %rax, %rax            # zero out eax
+   call scanf                 # call scanf
+
+.L5:                          # while loop   
+   cmpl $0, -8(%rbp)          # compare user input with 0
+   jge  .L2                   # jump to .L2 if user input is greater or equal to 0
+   xor  %rax, %rax            # zero out eax
+   add $16, %rsp              # release stack space
+   pop  %rbp                  # restore old frame
+   ret                        # return to C library to end
+
+
+.data
+
+read_format:
+   .asciz  "%d"
+
+prompt_format:
+   .asciz  "Enter an integer (negative to quit) -> "
+
+write_format:                                                                                   
+   .asciz  "Current maximum is  %d \n"

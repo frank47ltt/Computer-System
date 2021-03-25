@@ -1,0 +1,65 @@
+# @author Frank Liu {liut18@wfu.edu}
+# @date Dec.1, 2020
+# @assignment Lab 7
+# @file sum_two.s
+# @course CSC 250
+#
+# This program reads two integers and displays the sum
+#
+# Compile and run (Linux)
+#   gcc -no-pie sum_two.s && ./a.out
+
+
+.text
+   .global main               # use main if using C library
+
+sum:                          # name of the function
+   leal (%rdi, %rsi), %eax    # sum the first and second argument and store it in register %eax
+   ret                        # return the result of the sum
+
+main:
+   push %rbp                  # save the old frame
+   mov  %rsp, %rbp            # create a new frame  
+   sub  $16, %rsp             # make some space on the stack (stack alignment) original 16
+
+   # prompt the user
+   mov  $prompt_format, %rdi  # first printf argument, format string  
+   xor  %rax, %rax            # zero out rax  
+   call printf                # printf
+
+   # read the value
+   mov  $read_format, %rdi    # first scanf argument, format string 
+   lea  -8(%rbp), %rdx        # second scanf argument, memory address
+   lea  -4(%rbp), %rsi        # third scanf argument, memory address
+   xor  %rax, %rax            # zero out rax
+   call scanf                 # scanf
+
+   #print to the screen  
+   mov -8(%rbp), %ebx         # store value on the stack in local variable
+   mov -4(%rbp), %ebp         # store value on the stack in local variable
+   mov  %ebp, %esi            # store local variable in the second argument
+   mov  %ebx, %edi            # store local varaible in the first argument
+   call sum                   # call the function sum
+   mov  %eax, %ecx            # store the returned value (sum) into fourth variable
+   mov  %ebp, %esi            # store value on the stack in second argument
+   mov  %ebx, %edx            # store value on the stack in first argument
+   mov  $write_format, %rdi   # first printf argument, format string
+   xor  %rax, %rax            # zero out rax  
+   call printf                # printf
+
+   add  $16, %rsp             # release stack space
+   pop  %rbp                  # restore old frame
+   ret                        # return to C library to end
+
+
+.data
+
+read_format:
+   .asciz  "%d %d"
+
+prompt_format:
+   .asciz  "Enter two integers -> "
+
+write_format:
+   .asciz   "%d + %d = %d \n"
+
